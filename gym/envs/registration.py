@@ -189,7 +189,7 @@ def patch_deprecated_methods(env):
         warn_once = False
     env.reset = env.reset
     env.step = env.step
-    env.seed = env._seed
+    env.seed = env.seed
 
     def render(mode):
         return env.render(mode, close=False)

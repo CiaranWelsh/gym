@@ -40,14 +40,13 @@ class BanditEnv(gym.Env):
         self.action_space = spaces.Discrete(self.n_bandits)
         self.observation_space = spaces.box.Box(-1.0, 1.0, (1,))  #
 
-        self._seed()
+        self.seed()
 
     def reset(self):
         pass
 
-    def _seed(self, seed=None):
+    def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
-        return [seed]
 
     def step(self, action):
         assert self.action_space.contains(action)
