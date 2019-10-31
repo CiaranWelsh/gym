@@ -187,15 +187,15 @@ def patch_deprecated_methods(env):
             "Environment '%s' has deprecated methods '_step' and '_reset' rather than 'step' and 'reset'. Compatibility code invoked. Set _gym_disable_underscore_compat = True to disable this behavior." % str(
                 type(env)))
         warn_once = False
-    env.reset = env._reset
-    env.step = env._step
+    env.reset = env.reset
+    env.step = env.step
     env.seed = env._seed
 
     def render(mode):
-        return env._render(mode, close=False)
+        return env.render(mode, close=False)
 
     def close():
-        env._render("human", close=True)
+        env.render("human", close=True)
 
     env.render = render
     env.close = close

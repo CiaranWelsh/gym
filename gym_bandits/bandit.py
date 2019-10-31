@@ -42,14 +42,14 @@ class BanditEnv(gym.Env):
 
         self._seed()
 
-    # def reset(self):
-    #     pass
+    def reset(self):
+        pass
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _step(self, action):
+    def step(self, action):
         assert self.action_space.contains(action)
 
         reward = 0
@@ -63,10 +63,10 @@ class BanditEnv(gym.Env):
 
         return [0], reward, done, self.info  #
 
-    def _reset(self):
+    def reset(self):
         return [0]  #
 
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         pass
 
 
