@@ -17,26 +17,27 @@ def incremental_epsilon_greedy_bandit(env, Q, eps):
         return env.action_space.sample()
 
 
-# @numba.jit(nopython=True)
 def learn(env, n=10, debug=False):
     """
-
     :param env: A bandit environment from the gym_bandits package
     :param n: the number of individual bandit problems to run
     :return:
     """
+
     k = env.action_space.n  # how many arms
     all_qs = np.zeros((n, k))  # place to store learnt action values
     for i in range(n):
         eps = 1
         Q = np.zeros(k)
         N = np.zeros(k)  # time step counter
-        env.reset()
         for t in range(2000):
-            action = incremental_epsilon_greedy_bandit(env, Q, eps=eps)
+            r = np.random.uniform()
+            if r > eps:
+                action = np.argmax(Q)
+            else:
+                action = env.action_space.sample()
             # observation always [0] and done always True so can be ignored
-            # info always {} so can also be ignored
-            _, reward, _, _ = env.step(action)
+            _, reward, _, info = env.step(action)
 
             # update N for incremental average
             N[action] += 1
@@ -51,7 +52,8 @@ def learn(env, n=10, debug=False):
                 print(f"action: {action}")
                 print(f"reward: {reward}")
                 print(f"N[action]: {N[action]}")
-                print(f"Q[action]: {Q[action]}\n")
+                print(f"Q[action]: {Q[action]}")
+                print(f"info: {info}\n")
 
         all_qs[i, :] = Q
 
@@ -59,11 +61,37 @@ def learn(env, n=10, debug=False):
     return all_qs
 
 
-def plot(Q, burnin=1000, filename=None):
+def bandit_problem_epsilon_greedy_agent(env, n=1000):
+    k = env.action_space.n  # how many arms
+    all_qs = np.zeros((n, k))  # place to store learnt action values
+    for i in range(n):
+        eps = 1
+        Q = np.zeros(k)
+        N = np.zeros(k)  # time step counter
+        for t in range(2000):
+            # this is our agent being epsilon greedy
+            r = np.random.uniform()
+            if r > eps:
+                action = np.argmax(Q)
+            else:
+                action = env.action_space.sample()
+            # observation always [0] and done always True so can be ignored
+            _, reward, _, info = env.step(action)
+            # update N for incremental average
+            N[action] += 1
+            # update rule, derived from average update rule        return [seed]
+            Q[action] = Q[action] + (1 / N[action]) * (reward - Q[action])
+            # incrementally dereasing epsilon
+            eps *= 0.999
+        all_qs[i, :] = Q
+    return all_qs
+
+
+def plot(Q, burnin=500, filename=None):
     fig = plt.figure()
-    sns.violinplot(data=Q[burnin:, :])
+    sns.violinplot(data=Q[burnin:, :], fig=fig)
     sns.despine(fig=fig, top=True, right=True)
-    plt.title('Results of 10-armed bandit problem (burnin={} iterations'.format(burnin))
+    # plt.title('Results of 10-armed bandit problem (burnin={} iterations)'.format(burnin))
     plt.xlabel('Action (k)')
     plt.ylabel('Estimated action value')
     if filename:
@@ -81,7 +109,7 @@ if __name__ == '__main__':
     print(estimated_action_values)
 
     print(env.p_dist)
-    print(env.r_dist)
+    print([round(i, 3) for i, j in env.r_dist])
 
     fname = os.path.join(BANDITS_DIRECTORY, '10ArmedBanditResults.png')
     plot(estimated_action_values, filename=fname)
